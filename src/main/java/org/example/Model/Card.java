@@ -1,13 +1,14 @@
-package org.example;
+package org.example.Model;
 
 public class Card {
     private String name;
     private int damage;
+    private Type type;
 
     public Type getType() {
         return type;
     }
-
+    
     public void setType(Type type) {
         this.type = type;
     }
@@ -20,7 +21,6 @@ public class Card {
         this.damage = damage;
     }
 
-    private Type type;
 
     public String getName() {
         return name;

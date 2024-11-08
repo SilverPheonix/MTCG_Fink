@@ -1,4 +1,4 @@
-package org.example;
+package org.example.Model;
 
 public class SpellCard extends Card {
     public SpellCard(String name, int damage, Card.Type type) {
