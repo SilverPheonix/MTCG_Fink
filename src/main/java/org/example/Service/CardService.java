@@ -7,7 +7,7 @@ import org.example.Repository.CardRepository;
 import java.util.List;
 
 public class CardService {
-    private CardRepository cardRepository = new CardRepository();
+    private CardRepository cardRepository =new CardRepository();
 
     public String getUserCards(String token) {
         // Validierung des Tokens und Abruf der Benutzerkarten

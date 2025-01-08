@@ -11,11 +11,41 @@ public class User {
     @JsonProperty("Password")
     private String password;
     private int coins;
+    @JsonProperty("Name")
+    private String name;
 
+    @JsonProperty("Bio")
+    private String bio;
+    @JsonProperty("Image")
+    private String image;
 
     private int elo;
     private ArrayList<Card> stack;
     private Deck deck;
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public void trade(){
 

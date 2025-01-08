@@ -50,7 +50,14 @@ public class UserService {
             if (updatedUser.getPassword() == null || updatedUser.getPassword().isEmpty()) {
                 updatedUser.setPassword(existingUser.getPassword());
             }
-            if (updatedUser.getCoins() == 20) { // Assuming `getCoins()` returns an Integer
+            if (updatedUser.getName() == null || updatedUser.getName().isEmpty()) {
+                updatedUser.setName(existingUser.getName());
+            }if (updatedUser.getBio() == null || updatedUser.getBio().isEmpty()) {
+                updatedUser.setBio(existingUser.getBio());
+            }if (updatedUser.getImage() == null || updatedUser.getImage().isEmpty()) {
+                updatedUser.setImage(existingUser.getImage());
+            }
+            if (updatedUser.getCoins() == 20 ) { // Assuming `getCoins()` returns an Integer
                 updatedUser.setCoins(existingUser.getCoins());
             }
             if (updatedUser.getElo() == 100) { // Assuming `getElo()` returns an Integer
@@ -59,7 +66,8 @@ public class UserService {
 
             // Now update the user in the repository
             if (userRepository.updateUser(updatedUser)) {
-                return "{\"username\": \"" + updatedUser.getUsername() + "\", \"coins\": " + updatedUser.getCoins() + ", \"elo\": " + updatedUser.getElo() + "}";
+                return "{\"username\": \"" + updatedUser.getUsername() + "\", \"coins\": " + updatedUser.getCoins() + ", \"elo\": " + updatedUser.getElo() +
+                        "\", \"Name\": " + updatedUser.getName() +"\", \"Bio\": " + updatedUser.getBio() +"\", \"Image\": " + updatedUser.getImage() +"}";
             } else {
                 return "{\"error\": \"Failed to update user data\"}";
             }

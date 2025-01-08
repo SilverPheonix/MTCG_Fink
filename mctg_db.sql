@@ -9,8 +9,17 @@ CREATE TABLE users (
                        elo NUMERIC DEFAULT 100,
                        games_played INT DEFAULT 0,
                        wins INT DEFAULT 0,
-                       losses INT DEFAULT 0
+                       losses INT DEFAULT 0,
+                       name VARCHAR(100),
+                       bio TEXT,
+                       image VARCHAR(255);
 );
+CREATE TABLE tokens (
+                        token VARCHAR(255) PRIMARY KEY,
+                        username VARCHAR(255) NOT NULL,
+                        FOREIGN KEY (username) REFERENCES users(username)
+);
+
 
 CREATE TABLE cards (
                        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -18,7 +27,7 @@ CREATE TABLE cards (
                        damage NUMERIC(10, 2) NOT NULL,
                        element_type VARCHAR(20) NOT NULL,
                        card_type VARCHAR(20) NOT NULL CHECK (card_type IN ('monster', 'spell')),
-                       owner_id UUID REFERENCES users(id) ON DELETE SET NULL
+                       owner_id VARCHAR(100) REFERENCES users(username) ON DELETE SET NULL
 );
 
 CREATE TABLE packages (
@@ -50,10 +59,11 @@ CREATE TABLE battles (
 );
 
 CREATE TABLE decks (
-                       user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+                       username VARCHAR(255) NOT NULL,  -- Store the username instead of user_id
                        card_id UUID REFERENCES cards(id) ON DELETE CASCADE,
-                       PRIMARY KEY (user_id, card_id)
+                       PRIMARY KEY (username, card_id)  -- Make username and card_id the composite key
 );
+
 
 -- Indexes for better performance
 CREATE INDEX idx_cards_owner_id ON cards(owner_id);

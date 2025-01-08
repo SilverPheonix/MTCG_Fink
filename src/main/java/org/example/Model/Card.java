@@ -36,4 +36,11 @@ public abstract class Card {
         WATER,
         NORMAL
     }
+
+    @Override
+    public String toString() {
+        return String.format("Card{id='%s', name='%s', damage=%.2f, element='%s'}\n",
+                id, name, damage, elementType);
+    }
+
 }

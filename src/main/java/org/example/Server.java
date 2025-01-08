@@ -27,7 +27,14 @@ public class Server {
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                handleRequest(clientSocket);
+                // Bearbeite jede Anfrage in einem separaten Thread
+                new Thread(() -> {
+                    try {
+                        handleRequest(clientSocket);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -42,7 +49,7 @@ public class Server {
         StringBuilder payload = new StringBuilder();
 
         Map<String, String> headers = parseHeaders(in);
-        String token = headers.get("Authorization");
+        String untrimmedToken = headers.get("Authorization");
 
         int contentLength = headers.containsKey("Content-Length") ? Integer.parseInt(headers.get("Content-Length")) : 0;
         if (contentLength > 0) {
@@ -61,40 +68,56 @@ public class Server {
 
             // Protected Endpoints (token required)
             else if (requestLine.startsWith("GET /cards")) {
+                String token = untrimmedToken.substring(7).trim();
                 if (!validateToken(token, out)) return;
                 cardController.getCards(token, out);
+            }else if (requestLine.startsWith("GET /deck")) {
+                String token = untrimmedToken.substring(7).trim();
+                if (!validateToken(token, out)) return;
+                cardController.getDeck(token, out);
             } else if (requestLine.startsWith("PUT /deck")) {
+                String token = untrimmedToken.substring(7).trim();
                 if (!validateToken(token, out)) return;
                 cardController.configureDeck(token, payload.toString(), out);
             } else if (requestLine.startsWith("POST /battles")) {
+                String token = untrimmedToken.substring(7).trim();
                 if (!validateToken(token, out)) return;
-                battleController.startBattle(token, out);
+                new BattleController().enterBattle(token, out);
             } else if (requestLine.startsWith("GET /scoreboard")) {
+                String token = untrimmedToken.substring(7).trim();
                 if (!validateToken(token, out)) return;
                 gameController.getScoreboard(out);
             } else if (requestLine.startsWith("POST /tradings")) {
+                String token = untrimmedToken.substring(7).trim();
                 if (!validateToken(token, out)) return;
                 tradeController.createTrade(token, payload.toString(), out);
             } else if (requestLine.startsWith("POST /tradings/")) {
+                String token = untrimmedToken.substring(7).trim();
                 if (!validateToken(token, out)) return;
                 tradeController.acceptTrade(token, requestLine, payload.toString(), out);
             } else if (requestLine.startsWith("DELETE /tradings/")) {
+                String token = untrimmedToken.substring(7).trim();
                 if (!validateToken(token, out)) return;
                 tradeController.deleteTrade(token, requestLine, out);
             } else if (requestLine.startsWith("POST /packages")) {
+                String token = untrimmedToken.substring(7).trim();
                 if (!validateToken(token, out)) return;
-                packageController.createPackage(payload.toString(), out);
+                packageController.createPackage(payload.toString(), token,out);
             } else if (requestLine.startsWith("POST /transactions/packages")) {
+                String token = untrimmedToken.substring(7).trim();
                 if (!validateToken(token, out)) return;
                 packageController.buyPackage(token, out);
             } else if (requestLine.startsWith("GET /stats")) {
+                String token = untrimmedToken.substring(7).trim();
                 if (!validateToken(token, out)) return;
                 gameController.getStats(token, out);
             } else if (requestLine.startsWith("GET /users/")) {
+                String token = untrimmedToken.substring(7).trim();
                 String username = extractUsernameFromRequest(requestLine);
                 if (!validateToken(token, out)) return;
                 userController.getUserData(username, out);
             } else if (requestLine.startsWith("PUT /users/")) {
+                String token = untrimmedToken.substring(7).trim();
                 String username = extractUsernameFromRequest(requestLine);
                 if (!validateToken(token, out)) return;
                 userController.updateUserData(username, payload.toString(), out);
@@ -110,34 +133,22 @@ public class Server {
     private String extractUsernameFromRequest(String requestLine) {
         // Trim the request line to remove any leading or trailing whitespace
         requestLine = requestLine.trim();
-
         // Split the requestLine by spaces to separate URL from HTTP version
         String[] parts = requestLine.split(" ");
-
         // The URL part should be at index 1 if the request follows the format "GET /users/{username} HTTP/1.1"
         String urlPart = parts[1];
-
         // Split the URL part by '/' to get the username
         String[] urlParts = urlPart.split("/");
-
         // Make sure there are enough parts (expecting 3: "users" and the username)
-        if (urlParts.length >= 3) {
-            // Return the username (trimmed for safety)
+        if (urlParts.length >= 3) {// Return the username (trimmed for safety)
             return urlParts[2].trim();
-        } else {
-            throw new IllegalArgumentException("Invalid request structure: " + requestLine);
+        } else { throw new IllegalArgumentException("Invalid request structure: " + requestLine);
         }
     }
 
 
     private boolean validateToken(String token, PrintWriter out) {
-        if (token == null || !token.startsWith("Bearer ")) {
-            sendUnauthorizedResponse(out);
-            return false;
-        }
-        String extractedToken = token.substring(7).trim(); // Remove "Bearer " prefix
-        System.out.println("Extracted Token: " + extractedToken);
-        if (!tokenManager.validateToken(extractedToken)) {
+        if (!tokenManager.validateToken(token)) {
             sendUnauthorizedResponse(out);
             return false;
         }

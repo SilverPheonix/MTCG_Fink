@@ -53,8 +53,7 @@ public class UserController {
             out.println("HTTP/1.1 200 OK");
         }
         else {
-            // General failure
-            out.println("HTTP/1.1 400 Bad Request");
+            out.println("HTTP/1.1 404 User Not Found");
         }
 
         out.println("Content-Type: application/json");
@@ -67,11 +66,11 @@ public class UserController {
         String response = userService.updateUserData(username, payload);
 
         if (response.contains("\"username\":")) {
-            out.println("HTTP/1.1 200 OK");
+            out.println("HTTP/1.1 200 - User sucessfully updated");
         }
         else {
             // General failure
-            out.println("HTTP/1.1 400 Bad Request");
+            out.println("HTTP/1.1 404 User not found");
         }
 
         out.println("Content-Type: application/json");

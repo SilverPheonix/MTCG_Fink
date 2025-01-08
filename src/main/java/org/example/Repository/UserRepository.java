@@ -10,6 +10,28 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 public class UserRepository {
+    private static final int PACKAGE_COST = 5;
+
+    // Method to check if the user has sufficient coins
+    public boolean hasSufficientCoins(String username) {
+        String query = "SELECT coins FROM users WHERE username = ?";
+        try (Connection connection = DatabaseConnection.connect();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setString(1, username);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                int coins = resultSet.getInt("coins");
+                return coins >= PACKAGE_COST;
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error checking coins for user: " + username + " - " + e.getMessage());
+        }
+
+        return false; // Default to false if an error occurs or the user does not exist
+    }
 
     // Method to add a new user to the database
     public boolean addUser(User user) {
@@ -124,7 +146,7 @@ public class UserRepository {
             return false;
         }
 
-        String query = "UPDATE users SET password = ?, coins = ?, elo = ? WHERE username = ?";
+        String query = "UPDATE users SET password = ?, coins = ?, elo = ?, name =?, bio =?, image=? WHERE username = ?";
 
         try (Connection connection = DatabaseConnection.connect();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
@@ -132,7 +154,10 @@ public class UserRepository {
             preparedStatement.setString(1, user.getPassword());
             preparedStatement.setInt(2, user.getCoins());
             preparedStatement.setInt(3, user.getElo());
-            preparedStatement.setString(4, user.getUsername());
+            preparedStatement.setString(4, user.getName());
+            preparedStatement.setString(5, user.getBio());
+            preparedStatement.setString(6, user.getImage());
+            preparedStatement.setString(7, user.getUsername());
 
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected > 0) {
@@ -147,5 +172,28 @@ public class UserRepository {
         }
 
         return false;
+    }
+
+    // Method to fetch username by token
+    public String getUsernameByToken(String token) {
+        String query = "SELECT username FROM tokens WHERE token = ?";
+
+        try (Connection connection = DatabaseConnection.connect();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setString(1, token);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                return resultSet.getString("username");
+            } else {
+                System.out.println("No username found for token: " + token);
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error while fetching username by token: " + e.getMessage());
+        }
+
+        return null;
     }
 }
