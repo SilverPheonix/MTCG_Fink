@@ -1,40 +1,39 @@
 package org.example.Model;
 
-public class Card {
+public abstract class Card {
+    private String id;
     private String name;
-    private int damage;
-    private Type type;
+    private double damage;
+    private ElementType elementType;
 
-    public Type getType() {
-        return type;
-    }
-    
-    public void setType(Type type) {
-        this.type = type;
-    }
-
-    public int getDamage() {
-        return damage;
-    }
-
-    public void setDamage(int damage) {
+    public Card(String id, String name, double damage, ElementType elementType) {
+        this.id = id;
+        this.name = name;
         this.damage = damage;
+        this.elementType = elementType;
     }
 
+    public String getId() {
+        return id;
+    }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public double getDamage() {
+        return damage;
     }
 
-    public enum Type {Fire,Water,Normal};
+    public ElementType getElementType() {
+        return elementType;
+    }
 
-    public Card(String name, int damage, Type type) {
-        this.name = name;
-        this.damage = damage;
-        this.type = type;
+    public abstract boolean isMonster();
+
+    public enum ElementType {
+        FIRE,
+        WATER,
+        NORMAL
     }
 }

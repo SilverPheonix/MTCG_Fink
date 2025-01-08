@@ -11,8 +11,11 @@ public class User {
     @JsonProperty("Password")
     private String password;
     private int coins;
-    private List<Card> stack;
-    private ArrayList<Card> deck;
+
+
+    private int elo;
+    private ArrayList<Card> stack;
+    private Deck deck;
 
     public void trade(){
 
@@ -26,26 +29,35 @@ public class User {
     // Standardkonstruktor
     public User() {
         this.coins = 20;
+        this.elo = 100;
         this.stack = new ArrayList<>();
-        this.deck = new ArrayList<>();
+        this.deck = new Deck();
     }
 
     public User(String username, String password) {
         this.username = username;
         this.password = password;
+        this.elo = 100;
         this.coins = 20; // Startkapital
         this.stack = new ArrayList<>();
-        this.deck = new ArrayList<>();
+        this.deck = new Deck();
+    }
+    public int getElo() {
+        return elo;
+    }
+
+    public void setElo(int elo) {
+        this.elo = elo;
     }
     public void addCardToStack(Card card) {
         stack.add(card);
     }
 
-    public void setDeck(List<Card> deck) {
-        this.deck = (ArrayList<Card>) deck;
+    public void setDeck(Deck deck) {
+        this.deck = (Deck) deck;
     }
 
-    public List<Card> getDeck() {
+    public Deck getDeck() {
         return this.deck;
     }
     public String getPassword() {

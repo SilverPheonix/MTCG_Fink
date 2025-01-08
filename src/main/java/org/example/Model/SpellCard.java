@@ -1,7 +1,13 @@
 package org.example.Model;
 
 public class SpellCard extends Card {
-    public SpellCard(String name, int damage, Card.Type type) {
-        super(name, damage, type);
+    public SpellCard(String id, String name, double damage, ElementType elementType) {
+        super(id, name, damage, elementType);
+    }
+
+    @Override
+    public boolean isMonster() {
+        return false;
     }
 }
+

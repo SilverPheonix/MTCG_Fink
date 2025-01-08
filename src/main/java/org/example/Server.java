@@ -2,13 +2,23 @@ package org.example;
 
 import java.io.*;
 import java.net.*;
-import org.example.Controller.UserController;
+import java.util.Map;
+import java.util.HashMap;
+import org.example.Controller.*;
 
 public class Server {
     private int port;
+    private TokenManager tokenManager;
+    private UserController userController = new UserController();
+    private CardController cardController = new CardController();
+    private BattleController battleController = new BattleController();
+    private TradeController tradeController = new TradeController();
+    private GameController gameController = new GameController();
+    private PackageController packageController = new PackageController(); // Add PackageController
 
     public Server(int port) {
         this.port = port;
+        this.tokenManager = new TokenManager();
     }
 
     public void start() {
@@ -31,31 +41,125 @@ public class Server {
         String requestLine = in.readLine();
         StringBuilder payload = new StringBuilder();
 
-        // Verarbeite die Header, um den Body richtig zu lesen
-        String headerLine;
-        int contentLength = 0;
+        Map<String, String> headers = parseHeaders(in);
+        String token = headers.get("Authorization");
 
-        while ((headerLine = in.readLine()) != null && !headerLine.isEmpty()) {
-            if (headerLine.startsWith("Content-Length: ")) {
-                contentLength = Integer.parseInt(headerLine.substring(16));
-            }
+        int contentLength = headers.containsKey("Content-Length") ? Integer.parseInt(headers.get("Content-Length")) : 0;
+        if (contentLength > 0) {
+            char[] body = new char[contentLength];
+            int read = in.read(body, 0, contentLength);
+            payload.append(body, 0, read);
         }
-        // Lies den Body der Anfrage
-        char[] body = new char[contentLength];
-        in.read(body, 0, contentLength);
-        payload.append(body);
 
         if (requestLine != null) {
-            // Basic Routing logic
+            // Public Endpoints
             if (requestLine.startsWith("POST /users")) {
-                new UserController().registerUser(payload.toString(), out);
+                userController.registerUser(payload.toString(), out);
             } else if (requestLine.startsWith("POST /sessions")) {
-                new UserController().loginUser(payload.toString(), out);
+                userController.loginUser(payload.toString(), out);
+            }
+
+            // Protected Endpoints (token required)
+            else if (requestLine.startsWith("GET /cards")) {
+                if (!validateToken(token, out)) return;
+                cardController.getCards(token, out);
+            } else if (requestLine.startsWith("PUT /deck")) {
+                if (!validateToken(token, out)) return;
+                cardController.configureDeck(token, payload.toString(), out);
+            } else if (requestLine.startsWith("POST /battles")) {
+                if (!validateToken(token, out)) return;
+                battleController.startBattle(token, out);
+            } else if (requestLine.startsWith("GET /scoreboard")) {
+                if (!validateToken(token, out)) return;
+                gameController.getScoreboard(out);
+            } else if (requestLine.startsWith("POST /tradings")) {
+                if (!validateToken(token, out)) return;
+                tradeController.createTrade(token, payload.toString(), out);
+            } else if (requestLine.startsWith("POST /tradings/")) {
+                if (!validateToken(token, out)) return;
+                tradeController.acceptTrade(token, requestLine, payload.toString(), out);
+            } else if (requestLine.startsWith("DELETE /tradings/")) {
+                if (!validateToken(token, out)) return;
+                tradeController.deleteTrade(token, requestLine, out);
+            } else if (requestLine.startsWith("POST /packages")) {
+                if (!validateToken(token, out)) return;
+                packageController.createPackage(payload.toString(), out);
+            } else if (requestLine.startsWith("POST /transactions/packages")) {
+                if (!validateToken(token, out)) return;
+                packageController.buyPackage(token, out);
+            } else if (requestLine.startsWith("GET /stats")) {
+                if (!validateToken(token, out)) return;
+                gameController.getStats(token, out);
+            } else if (requestLine.startsWith("GET /users/")) {
+                String username = extractUsernameFromRequest(requestLine);
+                if (!validateToken(token, out)) return;
+                userController.getUserData(username, out);
+            } else if (requestLine.startsWith("PUT /users/")) {
+                String username = extractUsernameFromRequest(requestLine);
+                if (!validateToken(token, out)) return;
+                userController.updateUserData(username, payload.toString(), out);
             } else {
                 out.println("HTTP/1.1 404 Not Found");
+                out.println();
             }
         }
 
         clientSocket.close();
+    }
+
+    private String extractUsernameFromRequest(String requestLine) {
+        // Trim the request line to remove any leading or trailing whitespace
+        requestLine = requestLine.trim();
+
+        // Split the requestLine by spaces to separate URL from HTTP version
+        String[] parts = requestLine.split(" ");
+
+        // The URL part should be at index 1 if the request follows the format "GET /users/{username} HTTP/1.1"
+        String urlPart = parts[1];
+
+        // Split the URL part by '/' to get the username
+        String[] urlParts = urlPart.split("/");
+
+        // Make sure there are enough parts (expecting 3: "users" and the username)
+        if (urlParts.length >= 3) {
+            // Return the username (trimmed for safety)
+            return urlParts[2].trim();
+        } else {
+            throw new IllegalArgumentException("Invalid request structure: " + requestLine);
+        }
+    }
+
+
+    private boolean validateToken(String token, PrintWriter out) {
+        if (token == null || !token.startsWith("Bearer ")) {
+            sendUnauthorizedResponse(out);
+            return false;
+        }
+        String extractedToken = token.substring(7).trim(); // Remove "Bearer " prefix
+        System.out.println("Extracted Token: " + extractedToken);
+        if (!tokenManager.validateToken(extractedToken)) {
+            sendUnauthorizedResponse(out);
+            return false;
+        }
+        return true;
+    }
+
+    private void sendUnauthorizedResponse(PrintWriter out) {
+        out.println("HTTP/1.1 401 Unauthorized");
+        out.println("Content-Type: application/json");
+        out.println();
+        out.println("{\"error\": \"Unauthorized\"}");
+    }
+
+    private Map<String, String> parseHeaders(BufferedReader in) throws IOException {
+        Map<String, String> headers = new HashMap<>();
+        String line;
+        while ((line = in.readLine()) != null && !line.isEmpty()) {
+            if (line.contains(":")) {
+                String[] parts = line.split(": ", 2);
+                headers.put(parts[0], parts[1]);
+            }
+        }
+        return headers;
     }
 }
