@@ -8,8 +8,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 
 public class UserService {
-    private UserRepository userRepository = new UserRepository();
-    private TokenManager tokenManager = new TokenManager();
+    public UserRepository userRepository = new UserRepository();
+    public TokenManager tokenManager = new TokenManager();
     private ObjectMapper objectMapper = new ObjectMapper();  // Jackson library for parsing JSON
 
     public String registerUser(String payload) throws IOException {

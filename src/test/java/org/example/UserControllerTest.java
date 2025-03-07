@@ -1,8 +1,8 @@
+package org.example;
+
 import org.example.Controller.UserController;
-import org.example.Model.User;
 import org.example.Service.UserService;
 
-import org.example.Service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 public class UserControllerTest {
 
@@ -29,6 +28,7 @@ public class UserControllerTest {
         userController = new UserController();  // Controller instantiation
         userController.userService = mockUserService;  // Injecting mock service
     }
+
 
     @Test
     public void testRegisterUser_Success() throws IOException {

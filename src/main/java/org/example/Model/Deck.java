@@ -11,9 +11,7 @@ public class Deck {
     }
 
     public void addCard(Card card) {
-        if (cards.size() >= 4) {
-            throw new IllegalArgumentException("A deck can only have 4 cards.");
-        }
+
         cards.add(card);
     }
 

@@ -82,7 +82,7 @@ public class Server {
             } else if (requestLine.startsWith("POST /battles")) {
                 String token = untrimmedToken.substring(7).trim();
                 if (!validateToken(token, out)) return;
-                new BattleController().enterBattle(token, out);
+                battleController.enterBattle(token, out);
             } else if (requestLine.startsWith("GET /scoreboard")) {
                 String token = untrimmedToken.substring(7).trim();
                 if (!validateToken(token, out)) return;

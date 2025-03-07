@@ -1,4 +1,5 @@
-import org.example.Controller.UserController;
+package org.example;
+
 import org.example.Model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,15 +37,6 @@ class UserTest {
         assertEquals("newpassword", user.getPassword());
         assertEquals(50, user.getCoins());
         assertEquals(120, user.getElo());
-    }
-
-    @Test
-    void testAddCardToStack() {
-        // Test adding a card to the stack (You'd need a Card class for this, but this shows the idea)
-        // Assuming we have a simple Card class:
-        // Card card = new Card("Dragon", "Fire", 30);
-        // user.addCardToStack(card);
-        // assertEquals(1, user.getStack().size());
     }
 
     @Test
